@@ -1,0 +1,132 @@
+{
+  "Lines": [
+    {
+      "Start": {
+        "IsEmpty": false,
+        "X": 169,
+        "Y": 126
+      },
+      "End": {
+        "IsEmpty": false,
+        "X": 361,
+        "Y": 242
+      },
+      "Color": "#000000",
+      "Thickness": 3
+    },
+    {
+      "Start": {
+        "IsEmpty": false,
+        "X": 380,
+        "Y": 139
+      },
+      "End": {
+        "IsEmpty": false,
+        "X": 214,
+        "Y": 234
+      },
+      "Color": "#000000",
+      "Thickness": 3
+    },
+    {
+      "Start": {
+        "IsEmpty": false,
+        "X": 222,
+        "Y": 179
+      },
+      "End": {
+        "IsEmpty": false,
+        "X": 286,
+        "Y": 295
+      },
+      "Color": "#000000",
+      "Thickness": 3
+    },
+    {
+      "Start": {
+        "IsEmpty": false,
+        "X": 300,
+        "Y": 180
+      },
+      "End": {
+        "IsEmpty": false,
+        "X": 342,
+        "Y": 259
+      },
+      "Color": "#000000",
+      "Thickness": 3
+    },
+    {
+      "Start": {
+        "IsEmpty": false,
+        "X": 346,
+        "Y": 189
+      },
+      "End": {
+        "IsEmpty": false,
+        "X": 357,
+        "Y": 244
+      },
+      "Color": "#000000",
+      "Thickness": 3
+    },
+    {
+      "Start": {
+        "IsEmpty": false,
+        "X": 553,
+        "Y": 157
+      },
+      "End": {
+        "IsEmpty": false,
+        "X": 396,
+        "Y": 221
+      },
+      "Color": "#000000",
+      "Thickness": 1
+    },
+    {
+      "Start": {
+        "IsEmpty": false,
+        "X": 386,
+        "Y": 147
+      },
+      "End": {
+        "IsEmpty": false,
+        "X": 464,
+        "Y": 252
+      },
+      "Color": "#000000",
+      "Thickness": 1
+    },
+    {
+      "Start": {
+        "IsEmpty": false,
+        "X": 448,
+        "Y": 115
+      },
+      "End": {
+        "IsEmpty": false,
+        "X": 499,
+        "Y": 226
+      },
+      "Color": "#000000",
+      "Thickness": 1
+    },
+    {
+      "Start": {
+        "IsEmpty": false,
+        "X": 475,
+        "Y": 110
+      },
+      "End": {
+        "IsEmpty": false,
+        "X": 531,
+        "Y": 187
+      },
+      "Color": "#000000",
+      "Thickness": 1
+    }
+  ],
+  "Circles": [],
+  "Polygons": []
+}
