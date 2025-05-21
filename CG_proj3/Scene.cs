@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Microsoft.VisualBasic.ApplicationServices;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace CG_proj3
 {
@@ -16,6 +18,10 @@ namespace CG_proj3
         public List<LineShape> Lines { get; set; } = new();
         public List<CircleShape> Circles { get; set; } = new();
         public List<PolygonShape> Polygons { get; set; } = new();
+        public List<RectangleShape> Rectangles { get; set; } = new();
+
+        [JsonIgnore]
+        public List<LineShape> ClippedEdges { get; set; } = new();
 
         public Scene(int width, int height)
         {
@@ -28,6 +34,7 @@ namespace CG_proj3
             Lines = new List<LineShape>();
             Circles = new List<CircleShape>();
             Polygons = new List<PolygonShape>();
+            Rectangles = new List<RectangleShape>();
         }
 
         public void DrawAll(DirectBitmap bmp, bool antiAliasing)
@@ -40,6 +47,12 @@ namespace CG_proj3
 
             foreach (var polygon in Polygons)
                 polygon.Draw(bmp, antiAliasing);
+
+            foreach (var rectangle in Rectangles)
+                rectangle.Draw(bmp, antiAliasing);
+
+            foreach (var edge in ClippedEdges)
+                edge.Draw(bmp, antiAliasing);
         }
 
         public Shape HitTest(Point p)
@@ -56,6 +69,10 @@ namespace CG_proj3
                 if (poly.HitTest(p))
                     return poly;
 
+            foreach (var rect in Rectangles)
+                if (rect.HitTest(p))
+                    return rect;
+
             return null;
         }
 
@@ -64,6 +81,8 @@ namespace CG_proj3
             Lines.RemoveAll(l => l.HitTest(p));
             Circles.RemoveAll(c => c.HitTest(p));
             Polygons.RemoveAll(pg => pg.HitTest(p));
+            Rectangles.RemoveAll(rg  => rg.HitTest(p));
+            ClippedEdges.RemoveAll(ce => ce.HitTest(p));    
         }
 
         public void Clear()
@@ -71,6 +90,8 @@ namespace CG_proj3
             Lines.Clear();
             Circles.Clear();
             Polygons.Clear();
+            Rectangles.Clear();
+            ClippedEdges.Clear();
         }
 
         public void AddShape(Shape shape)
@@ -83,6 +104,22 @@ namespace CG_proj3
 
             else if (shape is PolygonShape poly)
                 Polygons.Add(poly);
+
+            else if (shape is RectangleShape rect)
+                Rectangles.Add(rect);
+        }
+
+        public void ClipPolygonEdges(PolygonShape poly, RectangleShape rect)
+        {
+            var clipper = new LiangBarskyClipping();
+            var clippedEdges = clipper.ClipPolygonEdges(poly.LineSegments, rect);
+            foreach (var edge in clippedEdges)
+            {
+                edge.Color = Color.Aqua;
+                edge.Thickness = poly.Thickness + 1;
+            }
+
+            ClippedEdges = clippedEdges;
         }
 
         public void SaveScene(string path)
@@ -117,6 +154,22 @@ namespace CG_proj3
             scene.Lines.AddRange(temp.Lines);
             scene.Circles.AddRange(temp.Circles);
             scene.Polygons.AddRange(temp.Polygons);
+            scene.Rectangles.AddRange(temp.Rectangles);
+
+            foreach (var poly in scene.Polygons)
+            {
+                if (poly.FillMode == FillType.Image && !string.IsNullOrEmpty(poly.FillImagePath) && File.Exists(poly.FillImagePath))
+                {
+                    using (Bitmap original = new Bitmap(poly.FillImagePath))
+                    {
+                        DirectBitmap bpm = new DirectBitmap(original);
+                        poly.FillImage = bpm;
+                    }
+                }
+            }
+
+            foreach (var rect in scene.Rectangles)
+                rect.Update();
 
             return scene;
         }

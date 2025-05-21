@@ -1,3 +1,4 @@
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Windows.Forms;
 
@@ -5,7 +6,7 @@ namespace CG_proj3
 {
     public partial class MainForm : Form
     {
-        enum Tool { None, Line, Circle, Polygon, Delete, Color, Thickness }
+        enum Tool { None, Line, Circle, Polygon, Rectangle, Delete, Color, Thickness, Clipping, ColorFill, ImageFill }
 
         Scene scene;
         DirectBitmap bitmap;
@@ -32,6 +33,16 @@ namespace CG_proj3
         private bool isDraggingPolygon = false;
         int draggingVertexIndex;
         int draggingLineIndex;
+
+        private RectangleShape currentRectangle;
+        private bool isDraggingEdge = false;
+        private bool isDraggingRectangle = false;
+
+        private bool isClipping = false;
+        private PolygonShape clippedPolygon;
+        private RectangleShape clippedRectangle;
+
+        private PolygonShape filledPolygon;
 
         public MainForm()
         {
@@ -62,6 +73,11 @@ namespace CG_proj3
             currentTool = Tool.Polygon;
         }
 
+        private void rectangleToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            currentTool = Tool.Rectangle;
+        }
+
         private void deleteShapeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             currentTool = Tool.Delete;
@@ -70,6 +86,18 @@ namespace CG_proj3
         private void changeThicknessToolStripMenuItem_Click(object sender, EventArgs e)
         {
             currentTool = Tool.Thickness;
+        }
+
+        private void clippingToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            currentTool = Tool.Clipping;
+
+            if (isClipping)
+                scene.ClippedEdges.Clear();
+
+            isClipping = !isClipping;
+            clippingToolStripMenuItem.Checked = isClipping;
+            Redraw();
         }
 
         private void antiAliasingToolStripMenuItem_Click(object sender, EventArgs e)
@@ -128,7 +156,18 @@ namespace CG_proj3
             brushThickness = (int)numericUpDown1.Value;
         }
 
-        private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
+        private void solidColorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            currentTool = Tool.ColorFill;
+        }
+
+        private void pictureFillToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            currentTool = Tool.ImageFill;
+        }
+
+
+            private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
             if (currentTool == Tool.Line)
             {
@@ -273,7 +312,126 @@ namespace CG_proj3
                 Redraw();
             }
 
+            else if (currentTool == Tool.Rectangle)
+            {
+                if (!isDrawing)
+                {
+                    foreach (var rect in scene.Rectangles)
+                    {
+                        int hitIndex = rect.HitTestVertex(e.Location);
+                        if (hitIndex != -1)
+                        {
+                            currentRectangle = rect;
+                            draggingVertexIndex = hitIndex;
+                            isDraggingVertex = true;
+                            return;
+                        }
 
+                        foreach (var edge in rect.Edges)
+                        {
+                            if (edge.HitTest(e.Location))
+                            {
+                                currentRectangle = rect;
+                                isDraggingEdge = true;
+                                dragOffset = e.Location;
+                                return;
+                            }
+                        }
+
+                        Point centroid = rect.GetCentroid();
+                        int dx = e.X - centroid.X;
+                        int dy = e.Y - centroid.Y;
+                        double distToCentroid = Math.Sqrt(dx * dx + dy * dy);
+
+                        if (distToCentroid < 30)
+                        {
+                            currentRectangle = rect;
+                            isDraggingRectangle = true;
+                            dragOffset = new Point(e.X - currentRectangle.GetCentroid().X, e.Y - currentRectangle.GetCentroid().Y);
+                            return;
+                        }
+                    }
+                }
+
+                if (!isDrawing)
+                {
+                    currentRectangle = new RectangleShape
+                    {
+                        TopLeft = e.Location,
+                        BottomRight = e.Location,
+                        Color = brushColor,
+                        Thickness = brushThickness
+                    };
+                    currentRectangle.Update();
+                    scene.AddShape(currentRectangle);
+                    isDrawing = true;
+                }
+            }
+
+            else if (currentTool == Tool.Clipping)
+            {
+                var clippedShape = scene.HitTest(e.Location);
+                if (clippedShape is PolygonShape)
+                    clippedPolygon = (PolygonShape)clippedShape;
+
+                if (clippedShape is RectangleShape)
+                    clippedRectangle = (RectangleShape)clippedShape;
+
+                if (clippedPolygon != null && clippedRectangle != null)
+                    scene.ClipPolygonEdges(clippedPolygon, clippedRectangle);
+
+                Redraw();
+            }
+
+            else if (currentTool == Tool.ColorFill)
+            {
+                var filledShape = scene.HitTest(e.Location);
+
+                if (filledShape is PolygonShape)
+                    filledPolygon = (PolygonShape)filledShape;
+
+                if (filledPolygon != null)
+                {
+                    if (colorDialog1.ShowDialog() == DialogResult.OK)
+                    {
+                        filledPolygon.FillMode = FillType.SolidColor;
+                        filledPolygon.FillColor = colorDialog1.Color;
+                    }
+
+                    Redraw();
+                }
+            }
+
+            else if (currentTool == Tool.ImageFill)
+            {
+                var filledShape = scene.HitTest(e.Location);
+
+                if (filledShape is PolygonShape)
+                    filledPolygon = (PolygonShape)filledShape;
+
+                if (filledPolygon != null)
+                {
+                    using (OpenFileDialog openFileDialog = new OpenFileDialog())
+                    {
+                        openFileDialog.Filter = "Image Files (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png|" +
+                            "JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|" + "PNG Files (*.png)|*.png|" + "All Files (*.*)|*.*";
+
+                        if (openFileDialog.ShowDialog() == DialogResult.OK)
+                        {
+                            using (Bitmap original = new Bitmap(openFileDialog.FileName))
+                            {
+                                DirectBitmap bpm = new DirectBitmap(original);
+                                filledPolygon.FillImage = bpm;
+                            }
+
+                            filledPolygon.FillMode = FillType.Image;
+                            filledPolygon.FillImagePath = openFileDialog.FileName;
+
+                            Redraw();
+                        }
+                    }
+                }
+            }
 
             else if (currentTool == Tool.Delete)
             {
@@ -304,6 +462,15 @@ namespace CG_proj3
                     }
                 }
 
+                foreach (var rect in scene.Rectangles)
+                {
+                    if (rect.HitTest(e.Location))
+                    {
+                        rect.Thickness = brushThickness;
+                        rect.ChangeThickness();
+                    }
+                }
+
                 Redraw();
             }
 
@@ -327,6 +494,15 @@ namespace CG_proj3
                     {
                         poly.Color = brushColor;
                         poly.ChangeColor();
+                    }
+                }
+
+                foreach (var rect in scene.Rectangles)
+                {
+                    if (rect.HitTest(e.Location))
+                    {
+                        rect.Color = brushColor;
+                        rect.ChangeColor();
                     }
                 }
 
@@ -437,6 +613,44 @@ namespace CG_proj3
 
                 Redraw();
             }
+
+            else if (currentTool == Tool.Rectangle && currentRectangle != null)
+            {
+                if (isDraggingVertex)
+                {
+                    currentRectangle.MoveVertex(draggingVertexIndex, e.Location);
+                    Redraw();
+                }
+
+                else if (isDraggingRectangle)
+                {
+                    int newCentroidX = e.X - dragOffset.X;
+                    int newCentroidY = e.Y - dragOffset.Y;
+
+                    Point centroid = currentRectangle.GetCentroid();
+
+                    int deltaX = newCentroidX - centroid.X;
+                    int deltaY = newCentroidY - centroid.Y;
+
+                    currentRectangle.TopLeft = new Point(currentRectangle.TopLeft.X + deltaX, currentRectangle.TopLeft.Y + deltaY);
+                    currentRectangle.BottomRight = new Point(currentRectangle.BottomRight.X + deltaX, currentRectangle.BottomRight.Y + deltaY);
+
+                    currentRectangle.Update();
+                }
+
+                else if (isDrawing)
+                {
+                    currentRectangle.BottomRight = e.Location;
+                    currentRectangle.Update(); // bugs if top-left, fix
+                }
+                Redraw();
+            }
+
+            if (isClipping && clippedPolygon != null && clippedRectangle != null)
+            {
+                scene.ClipPolygonEdges(clippedPolygon, clippedRectangle);
+                Redraw();
+            }
         }
 
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
@@ -465,6 +679,16 @@ namespace CG_proj3
                 isDraggingPolygon = false;
                 isDraggingLine = false;
                 currentPolygon = null;
+                Redraw();
+            }
+
+            else if (currentTool == Tool.Rectangle)
+            {
+                isDraggingVertex = false;
+                isDraggingEdge = false;
+                isDraggingRectangle = false;
+                isDrawing = false;
+                currentRectangle = null;
                 Redraw();
             }
         }

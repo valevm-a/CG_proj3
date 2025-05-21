@@ -4,7 +4,9 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Windows.Forms.VisualStyles;
 
 namespace CG_proj3
 {
@@ -257,8 +259,18 @@ namespace CG_proj3
         public List<LineShape> LineSegments = new List<LineShape>();
         public List<Point> Vertices = new List<Point>();
 
+        public FillType FillMode { get; set; } = FillType.None;
+        public Color FillColor { get; set; } = Color.Transparent;
+
+        [JsonIgnore]
+        public DirectBitmap FillImage { get; set; } = null;
+        public string FillImagePath { get; set; }
+
         public override void Draw(DirectBitmap bmp, bool antiAliasing)
         {
+            if (FillMode != FillType.None)
+                EdgeTableFilling.FillPolygon(bmp, this);
+
             foreach (var line in LineSegments)
             {
                 line.Draw(bmp, antiAliasing);
@@ -359,6 +371,135 @@ namespace CG_proj3
             return Color.FromArgb(r, g, b);
         }
     }
+
+    public class RectangleShape : Shape
+    {
+        public Point TopLeft, BottomRight;
+
+        [JsonIgnore]
+        public List<LineShape> Edges = new();
+
+        private void UpdateEdges()
+        {
+            Edges.Clear();
+
+            Point topRight = new Point(BottomRight.X, TopLeft.Y);
+            Point bottomLeft = new Point(TopLeft.X, BottomRight.Y);
+
+            Edges.Add(CreateEdge(TopLeft, topRight));     // top
+            Edges.Add(CreateEdge(topRight, BottomRight)); // right
+            Edges.Add(CreateEdge(BottomRight, bottomLeft)); // bottom
+            Edges.Add(CreateEdge(bottomLeft, TopLeft));   // left
+        }
+
+        private LineShape CreateEdge(Point start, Point end)
+        {
+            return new LineShape
+            {
+                Start = start,
+                End = end,
+                Color = this.Color,
+                Thickness = this.Thickness
+            };
+        }
+
+        public override void Draw(DirectBitmap bmp, bool antiAliasing)
+        {
+            foreach (var edge in Edges)
+            {
+                edge.Draw(bmp, antiAliasing: false);
+            }
+        }
+
+        public override bool HitTest(Point p)
+        {
+            foreach (var edge in Edges)
+            {
+                if (edge.HitTest(p))
+                    return true;
+            }
+            return false;
+        }
+
+        public int HitTestVertex(Point location, int tolerance = 5)
+        {
+            var corners = GetCorners();
+            for (int i = 0; i < corners.Count; i++)
+            {
+                if (Math.Abs(location.X - corners[i].X) < tolerance && Math.Abs(location.Y - corners[i].Y) < tolerance)
+                    return i;
+            }
+            return -1;
+        }
+
+        public List<Point> GetCorners()
+        {
+            return new List<Point>
+            {
+                TopLeft,
+                new Point(BottomRight.X, TopLeft.Y),
+                BottomRight,
+                new Point(TopLeft.X, BottomRight.Y)
+            };
+        }
+
+        public void MoveVertex(int index, Point newPos)
+        {
+            var corners = GetCorners();
+
+            Point oppositeCorner = corners[(index + 2) % 4];
+
+            TopLeft = new Point(Math.Min(oppositeCorner.X, newPos.X), Math.Min(oppositeCorner.Y, newPos.Y));
+            BottomRight = new Point(Math.Max(oppositeCorner.X, newPos.X), Math.Max(oppositeCorner.Y, newPos.Y));
+
+            Normalize();
+            UpdateEdges();
+        }
+
+        public Point GetCentroid()
+        {
+            int centerX = (TopLeft.X + BottomRight.X) / 2;
+            int centerY = (TopLeft.Y + BottomRight.Y) / 2;
+            return new Point(centerX, centerY);
+        }
+
+
+        private void Normalize()
+        {
+            int left = Math.Min(TopLeft.X, BottomRight.X);
+            int right = Math.Max(TopLeft.X, BottomRight.X);
+            int top = Math.Min(TopLeft.Y, BottomRight.Y);
+            int bottom = Math.Max(TopLeft.Y, BottomRight.Y);
+            TopLeft = new Point(left, top);
+            BottomRight = new Point(right, bottom);
+        }
+
+        public override void Move(Point delta)
+        {
+            TopLeft = new Point(TopLeft.X + delta.X, TopLeft.Y + delta.Y);
+            BottomRight = new Point(BottomRight.X + delta.X, BottomRight.Y + delta.Y);
+            UpdateEdges();
+        }
+
+        public void Update()
+        {
+            Normalize();
+            UpdateEdges();
+        }
+
+        public void ChangeThickness()
+        {
+            foreach (var edge in Edges)
+                edge.Thickness = Thickness;
+        }
+
+        public void ChangeColor()
+        {
+            foreach (var edge in Edges)
+                edge.Color = Color;
+        }
+    }
+
 
     public static class BrushManager
     {

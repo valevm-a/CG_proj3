@@ -36,13 +36,18 @@
             lineToolStripMenuItem = new ToolStripMenuItem();
             circleToolStripMenuItem = new ToolStripMenuItem();
             polygonToolStripMenuItem = new ToolStripMenuItem();
+            rectangleToolStripMenuItem = new ToolStripMenuItem();
             editToolStripMenuItem = new ToolStripMenuItem();
             deleteShapeToolStripMenuItem = new ToolStripMenuItem();
             clearAllToolStripMenuItem = new ToolStripMenuItem();
             changeColorToolStripMenuItem = new ToolStripMenuItem();
             changeThicknessToolStripMenuItem = new ToolStripMenuItem();
+            clippingToolStripMenuItem = new ToolStripMenuItem();
             optionsToolStripMenuItem = new ToolStripMenuItem();
             antiAliasingToolStripMenuItem = new ToolStripMenuItem();
+            fillToolStripMenuItem = new ToolStripMenuItem();
+            solidColorToolStripMenuItem = new ToolStripMenuItem();
+            imageFillToolStripMenuItem = new ToolStripMenuItem();
             panel1 = new Panel();
             label1 = new Label();
             numericUpDown1 = new NumericUpDown();
@@ -57,7 +62,7 @@
             // menuStrip1
             // 
             menuStrip1.ImageScalingSize = new Size(24, 24);
-            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, drawToolStripMenuItem, editToolStripMenuItem, optionsToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, drawToolStripMenuItem, editToolStripMenuItem, optionsToolStripMenuItem, fillToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(800, 33);
@@ -87,7 +92,7 @@
             // 
             // drawToolStripMenuItem
             // 
-            drawToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { lineToolStripMenuItem, circleToolStripMenuItem, polygonToolStripMenuItem });
+            drawToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { lineToolStripMenuItem, circleToolStripMenuItem, polygonToolStripMenuItem, rectangleToolStripMenuItem });
             drawToolStripMenuItem.Name = "drawToolStripMenuItem";
             drawToolStripMenuItem.Size = new Size(69, 29);
             drawToolStripMenuItem.Text = "Draw";
@@ -95,27 +100,34 @@
             // lineToolStripMenuItem
             // 
             lineToolStripMenuItem.Name = "lineToolStripMenuItem";
-            lineToolStripMenuItem.Size = new Size(270, 34);
+            lineToolStripMenuItem.Size = new Size(190, 34);
             lineToolStripMenuItem.Text = "Line";
             lineToolStripMenuItem.Click += lineToolStripMenuItem_Click;
             // 
             // circleToolStripMenuItem
             // 
             circleToolStripMenuItem.Name = "circleToolStripMenuItem";
-            circleToolStripMenuItem.Size = new Size(270, 34);
+            circleToolStripMenuItem.Size = new Size(190, 34);
             circleToolStripMenuItem.Text = "Circle";
             circleToolStripMenuItem.Click += circleToolStripMenuItem_Click;
             // 
             // polygonToolStripMenuItem
             // 
             polygonToolStripMenuItem.Name = "polygonToolStripMenuItem";
-            polygonToolStripMenuItem.Size = new Size(270, 34);
+            polygonToolStripMenuItem.Size = new Size(190, 34);
             polygonToolStripMenuItem.Text = "Polygon";
             polygonToolStripMenuItem.Click += polygonToolStripMenuItem_Click;
             // 
+            // rectangleToolStripMenuItem
+            // 
+            rectangleToolStripMenuItem.Name = "rectangleToolStripMenuItem";
+            rectangleToolStripMenuItem.Size = new Size(190, 34);
+            rectangleToolStripMenuItem.Text = "Rectangle";
+            rectangleToolStripMenuItem.Click += rectangleToolStripMenuItem_Click;
+            // 
             // editToolStripMenuItem
             // 
-            editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { deleteShapeToolStripMenuItem, clearAllToolStripMenuItem, changeColorToolStripMenuItem, changeThicknessToolStripMenuItem });
+            editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { deleteShapeToolStripMenuItem, clearAllToolStripMenuItem, changeColorToolStripMenuItem, changeThicknessToolStripMenuItem, clippingToolStripMenuItem });
             editToolStripMenuItem.Name = "editToolStripMenuItem";
             editToolStripMenuItem.Size = new Size(58, 29);
             editToolStripMenuItem.Text = "Edit";
@@ -123,30 +135,37 @@
             // deleteShapeToolStripMenuItem
             // 
             deleteShapeToolStripMenuItem.Name = "deleteShapeToolStripMenuItem";
-            deleteShapeToolStripMenuItem.Size = new Size(254, 34);
+            deleteShapeToolStripMenuItem.Size = new Size(317, 34);
             deleteShapeToolStripMenuItem.Text = "Delete Shape";
             deleteShapeToolStripMenuItem.Click += deleteShapeToolStripMenuItem_Click;
             // 
             // clearAllToolStripMenuItem
             // 
             clearAllToolStripMenuItem.Name = "clearAllToolStripMenuItem";
-            clearAllToolStripMenuItem.Size = new Size(254, 34);
+            clearAllToolStripMenuItem.Size = new Size(317, 34);
             clearAllToolStripMenuItem.Text = "Clear All";
             clearAllToolStripMenuItem.Click += clearAllToolStripMenuItem_Click;
             // 
             // changeColorToolStripMenuItem
             // 
             changeColorToolStripMenuItem.Name = "changeColorToolStripMenuItem";
-            changeColorToolStripMenuItem.Size = new Size(254, 34);
+            changeColorToolStripMenuItem.Size = new Size(317, 34);
             changeColorToolStripMenuItem.Text = "Change Color";
             changeColorToolStripMenuItem.Click += changeColorToolStripMenuItem_Click;
             // 
             // changeThicknessToolStripMenuItem
             // 
             changeThicknessToolStripMenuItem.Name = "changeThicknessToolStripMenuItem";
-            changeThicknessToolStripMenuItem.Size = new Size(254, 34);
+            changeThicknessToolStripMenuItem.Size = new Size(317, 34);
             changeThicknessToolStripMenuItem.Text = "Change Thickness";
             changeThicknessToolStripMenuItem.Click += changeThicknessToolStripMenuItem_Click;
+            // 
+            // clippingToolStripMenuItem
+            // 
+            clippingToolStripMenuItem.Name = "clippingToolStripMenuItem";
+            clippingToolStripMenuItem.Size = new Size(317, 34);
+            clippingToolStripMenuItem.Text = "Clip Polygon to Rectangle";
+            clippingToolStripMenuItem.Click += clippingToolStripMenuItem_Click;
             // 
             // optionsToolStripMenuItem
             // 
@@ -158,9 +177,30 @@
             // antiAliasingToolStripMenuItem
             // 
             antiAliasingToolStripMenuItem.Name = "antiAliasingToolStripMenuItem";
-            antiAliasingToolStripMenuItem.Size = new Size(215, 34);
+            antiAliasingToolStripMenuItem.Size = new Size(270, 34);
             antiAliasingToolStripMenuItem.Text = "Anti-Aliasing";
             antiAliasingToolStripMenuItem.Click += antiAliasingToolStripMenuItem_Click;
+            // 
+            // fillToolStripMenuItem
+            // 
+            fillToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { solidColorToolStripMenuItem, imageFillToolStripMenuItem });
+            fillToolStripMenuItem.Name = "fillToolStripMenuItem";
+            fillToolStripMenuItem.Size = new Size(49, 29);
+            fillToolStripMenuItem.Text = "Fill";
+            // 
+            // solidColorToolStripMenuItem
+            // 
+            solidColorToolStripMenuItem.Name = "solidColorToolStripMenuItem";
+            solidColorToolStripMenuItem.Size = new Size(202, 34);
+            solidColorToolStripMenuItem.Text = "Solid Color";
+            solidColorToolStripMenuItem.Click += solidColorToolStripMenuItem_Click;
+            // 
+            // imageFillToolStripMenuItem
+            // 
+            imageFillToolStripMenuItem.Name = "imageFillToolStripMenuItem";
+            imageFillToolStripMenuItem.Size = new Size(202, 34);
+            imageFillToolStripMenuItem.Text = "Image Fill";
+            imageFillToolStripMenuItem.Click += pictureFillToolStripMenuItem_Click;
             // 
             // panel1
             // 
@@ -253,5 +293,10 @@
         private ToolStripMenuItem openToolStripMenuItem;
         private ToolStripMenuItem saveAsToolStripMenuItem;
         private Label label1;
+        private ToolStripMenuItem rectangleToolStripMenuItem;
+        private ToolStripMenuItem clippingToolStripMenuItem;
+        private ToolStripMenuItem fillToolStripMenuItem;
+        private ToolStripMenuItem solidColorToolStripMenuItem;
+        private ToolStripMenuItem imageFillToolStripMenuItem;
     }
 }

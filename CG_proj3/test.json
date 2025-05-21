@@ -1,0 +1,21 @@
+{
+  "Lines": [],
+  "Circles": [],
+  "Polygons": [],
+  "Rectangles": [
+    {
+      "TopLeft": {
+        "IsEmpty": false,
+        "X": 118,
+        "Y": 65
+      },
+      "BottomRight": {
+        "IsEmpty": false,
+        "X": 280,
+        "Y": 175
+      },
+      "Color": "#000000",
+      "Thickness": 1
+    }
+  ]
+}
